@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: fix/edited-new-memo-order
-          fetch-depth: 2
+          fetch-depth: 3
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           cp src/components/MemoEditor/hooks/useMemoSave.ts /tmp/fixed-memo-save.ts
-          git show HEAD^:web/src/components/MemoEditor/hooks/useMemoSave.ts > src/components/MemoEditor/hooks/useMemoSave.ts
+          git show HEAD~2:web/src/components/MemoEditor/hooks/useMemoSave.ts > src/components/MemoEditor/hooks/useMemoSave.ts
           set +e
           pnpm test tests/use-memo-save.test.tsx -t 'clears the new memo hoist' > /tmp/baseline.log 2>&1
           result=$?
