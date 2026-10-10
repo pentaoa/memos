@@ -1,0 +1,36 @@
+name: Memo ordering validation
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/edited-new-memo-order
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install -g pnpm@11.0.1
+      - run: pnpm install --frozen-lockfile
+        working-directory: web
+      - name: Baseline regression
+        working-directory: web
+        shell: bash
+        run: |
+          cp src/components/MemoEditor/hooks/useMemoSave.ts /tmp/fixed-memo-save.ts
+          git show HEAD^:web/src/components/MemoEditor/hooks/useMemoSave.ts > src/components/MemoEditor/hooks/useMemoSave.ts
+          set +e
+          pnpm test tests/use-memo-save.test.tsx -t 'clears the new memo hoist' > /tmp/baseline.log 2>&1
+          result=$?
+          set -e
+          cat /tmp/baseline.log
+          cp /tmp/fixed-memo-save.ts src/components/MemoEditor/hooks/useMemoSave.ts
+          test "$result" -ne 0
+          grep -q 'expected.*called' /tmp/baseline.log
+      - run: pnpm lint
+        working-directory: web
+      - run: pnpm test
+        working-directory: web
